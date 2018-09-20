@@ -1,0 +1,23 @@
+{
+    "name": "mengchenchen/mcc-doc",
+    "description": "php mcc-doc",
+    "type": "library",
+    "keywords": [
+        "php"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Bryce Meng",
+            "email": "mandlandc@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Mengcc\\": "src/"
+        }
+    }
+}
