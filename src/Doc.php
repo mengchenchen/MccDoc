@@ -274,7 +274,7 @@ HTML;
 	{
 		if (is_dir($dir) || (@mkdir($dir, $mode) && chmod($dir, $mode)))
 			return TRUE;
-		if (!mkdirs(dirname($dir), $mode))
+		if (!$this->mkdirs(dirname($dir), $mode))
 			return FALSE;
 
 		return @mkdir($dir, $mode);
