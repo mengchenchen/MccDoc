@@ -1,4 +1,5 @@
 <?php
+header("Content-Type:text/html;charset=utf-8");
 include './vendor/autoload.php';
 
 $doc = new \Mengcc\Doc([
@@ -7,6 +8,5 @@ $doc = new \Mengcc\Doc([
 	'namespace' => '\Mengcc\Tests\Controllers\Api\\',
 ]);
 
-echo "<pre>";
-var_dump($doc->getFiles());
-var_dump($doc->getAllData());
+$doc->view('D://');
+echo(json_encode($doc->getAllData()));

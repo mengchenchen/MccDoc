@@ -9,8 +9,6 @@
 
 namespace Mengcc;
 
-use app\Controllers\Api\NvcController;
-
 class Doc
 {
 	public $path;
@@ -55,6 +53,18 @@ class Doc
 		return $this->params;
 	}
 
+	public function getParamsEncode()
+	{
+		$params = [];
+		foreach ($this->params as $key => $value) {
+			$params[] = [
+				'key'   => $key,
+				'value' => $value,
+			];
+		}
+		return $params;
+	}
+
 	/**
 	 * 程序入口
 	 *
@@ -87,11 +97,12 @@ class Doc
 
 
 	/**
-	 * 生成视图文件
+     * 生成视图文件
 	 * 设置路径和名称
-	 *
-	 * @param $path
-	 * @param $name
+     *
+	 * @param string $path
+	 * @param string $name
+	 * @return bool
 	 * @author mengchenchen
 	 */
 	public function view($path = '/', $name = 'mcc-doc')
@@ -103,30 +114,18 @@ class Doc
 		foreach (array_keys($this->params) as $item) {
 			$nav .= '<li><a href = "#' . $item . '">' . $item . '</a></li>';
 		}
-		/**
-		 * 接口列表
-		 */
-		$list = '';
-		foreach ($this->params as $group => $item) {
-			$list .= '<h3><a name="' . $group . '">' . $group . '</a></h3>';
-			$list .= '<table class = "table table-hover">';
-			$list .= '<tr>
-                        <th width="100px">请求方式</th>
-                        <th width="200px">名称</th>
-                        <th width="600px">url</th>
-                        <th width="80px">操作</th>
-                     </tr>';
-			foreach ($item as $api) {
-				$params = isset($api['params']) ? json_encode($api['params']) : '无';
-				$list   .= "<tr>";
-				$list   .= '<td>' . $api['method'] . '</td>';
-				$list   .= '<td>' . $api['name'] . '</td>';
-				$list   .= '<td class="params"><span style="display: none">' . $params . '</span>' . $api['url'] . '</td>';
-				$list   .= '<td><button class="btn btn-xs btn-primary">测试</button></td>';
-				$list   .= "</tr>";
-			}
-			$list .= '</table>';
-		}
+
+		$methods = [
+			'PATCH'  => 'label-default',
+			'GET'    => 'label-primary',
+			'POST'   => 'label-success',
+			'PUT'    => 'label-info',
+			'ANY'    => 'label-warning',
+			'DELETE' => 'label-danger',
+		];
+
+		$params = json_encode($this->getParamsEncode(), JSON_PRETTY_PRINT + JSON_UNESCAPED_UNICODE);
+
 		$html = <<<HTML
 <!DOCTYPE html>
 <html lang = "zh-CN">
@@ -138,73 +137,82 @@ class Doc
     <meta name = "description" content = "">
     <meta name = "author" content = "">
     <link rel = "icon" href = "../../favicon.ico">
-
     <title>MccDoc</title>
-
     <!-- Bootstrap core CSS -->
     <link href = "https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel = "stylesheet">
-
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <link href = "../../assets/css/ie10-viewport-bug-workaround.css" rel = "stylesheet">
-
-    <!-- Custom styles for this template -->
-    <link href = "navbar-static-top.css" rel = "stylesheet">
-
-    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
-    <!--[if lt IE 9]>
-    <script src = "../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
-    <script type = "text/javascript" defer = "" async = "" src = "https://track.uc.cn/uaest.js"></script>
-    <script src = "../../assets/js/ie-emulation-modes-warning.js"></script>
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!--[if lt IE 9]>
-    <script src = "https://cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-    <script src = "https://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
-    <style>
-        body {
-            font-family: "微软雅黑 Light";
-        }
-    </style>
-
 </head>
 
 <body>
-
-<!-- Static navbar -->
 <nav class = "navbar navbar-default navbar-static-top">
     <div class = "container">
         <div class = "navbar-header">
-            <a class = "navbar-brand" href = "#">{$this->api_name}</a>
+            <a class = "navbar-brand" href = "#">MccDoc</a>
         </div>
         <div id = "navbar" class = "navbar-collapse collapse">
             <ul class = "nav navbar-nav">
-               {$nav}
+                <li>
+                    <a href = "#">更多...</a>
+                </li>
             </ul>
         </div>
     </div>
 </nav>
 
-<div class = "container">
-    <div class = "jumbotron">
-        <h1>{$this->api_name}</h1>
-        <ul>
-            <li>当前版本为1.0</li>
-            <li>支持请求方式：['get', 'post', 'put', 'delete', 'any', 'patch']</li>
-            <li>作者：孟晨晨 邮箱：mandlandc@gmail.com</li>
-        </ul>
+<div class = "container" id="app">
+    <div v-for="(group, index) in records">
+        <h3><a v-bind:name="group.key">{{ group.key }}</a></h3>
+        <template v-for = "item in group.value">
+        	<div class="panel-group" id="accordion">
+        		<div class = "panel panel-default">
+        			<div class = "panel-heading">
+            			<h4 class = "panel-title">
+            			<span class = "label" style="width: 60px;display: inline-block;height: 23px;line-height: 20px;"> {{ item.method }} </span>
+            			<a data-toggle = "collapse" data-parent = "#accordion" v-bind:href = "'#'+item.name">{{ item.name }}</a>
+            			</h4>
+        			</div>
+        			<div v-bind:id= "item.name" class = "panel-collapse collapse">
+            			<div class = "panel-body">
+            				<div v-if="item.params" class="panel panel-default">
+                                <div class="panel-heading">请求地址：{{ item.url }}</div>
+                                <div class="panel-body">
+                                <form class="form-horizontal" v-bind:action="item.url" method="post">
+                                        <template v-for = "(desc,param) in item.params">
+                                            <div class="form-group">
+                                                <label class="col-sm-2 control-label">{{ param }}</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" class="form-control" v-bind:name="param">
+                                                    <span class="help-block">{{ desc }}</span>
+                                                </div>
+                                            </div>
+                                       </template>
+                                    <div class="form-group">
+                                       <div class="col-sm-offset-2 col-sm-10">
+                                            <button type="submit" class="btn btn-default ajaxSubmit">submit</button>
+                                       </div>
+                                    </div>
+                                </form>
+                                </div>
+            				</div>
+            			</div>
+        			</div>
+        		</div>
+        	</div>
+        </template>
     </div>
-    {$list}
 </div>
 
 <script src = "https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
-<script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
 <script src = "https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<script src="https://cdn.bootcss.com/layer/3.1.0/layer.js" type="text/javascript"></script>
-<script type='text/javascript'>
-  
+<script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+<script>
+    var app = new Vue({
+        el:'#app',
+        data:{
+            records: {$params}
+        }
+    })
 </script>
-
-<div></div>
 </body>
 </html>
 HTML;
