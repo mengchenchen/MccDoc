@@ -4,7 +4,6 @@ namespace Mengcc\Tests\Controllers\Api;
 
 class TestController
 {
-
 	/**
 	 * @MccDoc({
 	 * "name":"首页",
@@ -17,7 +16,6 @@ class TestController
 	 */
 	public function index()
 	{
-
 	}
 
 	/**
@@ -36,7 +34,6 @@ class TestController
 	 */
 	public function edit()
 	{
-
 	}
 
 }

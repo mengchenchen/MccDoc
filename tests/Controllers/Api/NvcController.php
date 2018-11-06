@@ -2,9 +2,8 @@
 
 namespace Mengcc\Tests\Controllers\Api;
 
-class NvcController{
-	
-
+class NvcController
+{
 	/**
 	 * @MccDoc({
 	 * "name":"获取订单列表",
@@ -16,9 +15,7 @@ class NvcController{
 	 */
 	public function handle()
 	{
-		
 	}
-
 
 	/**
 	 * @MccDoc({
@@ -35,10 +32,9 @@ class NvcController{
 	 */
 	public function worker_dispatch()
 	{
-		
 	}
 
-	/**
+	/*
 	 * @MccDoc({
 	 * "name":"预约",
 	 * "url":"api/nvc/make_an_appointment",
@@ -75,9 +71,7 @@ class NvcController{
 	 */
 	public function refund()
 	{
-		
 	}
-
 
 	/**
 	 * @MccDoc({
@@ -94,9 +88,7 @@ class NvcController{
 	 */
 	public function order_complete()
 	{
-		
 	}
-
 
 	/**
 	 * @MccDoc({
@@ -114,8 +106,5 @@ class NvcController{
 	 */
 	public function edit_order_remark()
 	{
-		
 	}
-
-
 }
