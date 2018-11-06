@@ -2,6 +2,11 @@
 header("Content-Type:text/html;charset=utf-8");
 include './vendor/autoload.php';
 
+/**
+ * path：将要扫描的控制器路径
+ * api_name: 设置要生成的文档名称
+ * namespace：设置要反射的命名空间
+ */
 $doc = new \Mengcc\Doc([
 	'path'      => './tests/Controllers/Api',
 	'api_name'  => 'mcc',
