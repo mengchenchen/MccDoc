@@ -13,7 +13,6 @@ class Doc
 {
 	protected $params;
 	protected $files;
-	protected $methods;
 
 	public $path;
 	public $namespace;
