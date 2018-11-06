@@ -8,7 +8,7 @@ class NvcController{
 	/**
 	 * @MccDoc({
 	 * "name":"获取订单列表",
-	 * "url":"/m/api/nvc/handle",
+	 * "url":"api/nvc/handle",
 	 * "method":"GET",
 	 * "description":"获取订单列表"
 	 * })@
@@ -23,7 +23,7 @@ class NvcController{
 	/**
 	 * @MccDoc({
 	 * "name":"工人派单",
-	 * "url":"/m/api/nvc/worker_dispatch",
+	 * "url":"api/nvc/worker_dispatch",
 	 * "method":"POST",
 	 * "description":"工人派单",
 	 * "params":{
@@ -41,7 +41,7 @@ class NvcController{
 	/**
 	 * @MccDoc({
 	 * "name":"预约",
-	 * "url":"/m/api/nvc/make_an_appointment",
+	 * "url":"api/nvc/make_an_appointment",
 	 * "method":"POST",
 	 * "description":"预约",
 	 * "params":{
@@ -61,7 +61,7 @@ class NvcController{
 	/**
 	 * @MccDoc({
 	 * "name":"雷士退单",
-	 * "url":"/m/api/nvc/refund",
+	 * "url":"api/nvc/refund",
 	 * "method":"POST",
 	 * "description":"雷士退单",
 	 * "params":{
@@ -82,7 +82,7 @@ class NvcController{
 	/**
 	 * @MccDoc({
 	 * "name":"雷士订单完工",
-	 * "url":"/m/api/nvc/order_complete",
+	 * "url":"api/nvc/order_complete",
 	 * "method":"POST",
 	 * "description":"雷士订单完工",
 	 * "params":{
@@ -101,7 +101,7 @@ class NvcController{
 	/**
 	 * @MccDoc({
 	 * "name":"修改工单备注",
-	 * "url":"/m/api/nvc/edit_order_remark",
+	 * "url":"api/nvc/edit_order_remark",
 	 * "method":"POST",
 	 * "description":"修改工单备注",
 	 * "params":{
