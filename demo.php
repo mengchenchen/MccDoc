@@ -1,6 +1,9 @@
 <?php
-header("Content-Type:text/html;charset=utf-8");
+
 include './vendor/autoload.php';
+
+// 可以设置编码
+header("Content-Type:text/html;charset=utf-8");
 
 /**
  * path：将要扫描的控制器路径
