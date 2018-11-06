@@ -1,29 +1,30 @@
 # MccDoc - API文档生成 [![Build Status](https://img.shields.io/travis/Seldaek/monolog.svg)](https://travis-ci.org/Seldaek/monolog)
 
-市面上的接口文档生成都要求php7.0以上版本，而且大多数都基于某某个框架，比如laravel、CI、YII等等。由于当前公司项目是十年前的项目，php版本低、结构乱，需要对接的第三方接口较多，此项目也就应运而生了。
+市面上的接口文档生成都要求 php7+ 以上版本，而且大多数文档生成工具都基于某某个框架，例：
+* swgger (php 7+，基于框架)
+* apidoc (npm 驱动) 
 
-MccDoc的特点在于简单易上手依赖较小，只要保证你的 PHP版本 > 5.4 就可以了。
+由于当前公司项目是十年前的项目，php 版本低、结构乱，需要对接的第三方接口较多，此项目也就应运而生了。
+
+MccDoc 的特点在于简单易上手依赖较小，只要保证你的 PHP版本 > 5.4 就可以了。
 
 ## 安装
 
-如果你装了composer，复制下面这段话就可以获取到最新版本的MccDoc了
+如果你装了 composer ，复制下面这段话就可以获取到最新版本的 MccDoc 了
 
 ``` base
-$ composer require mengchenchen/MccDoc
+$ composer require mengcc/mcc-doc
 ```
 
-如果你没有配置composer也不要紧，点击下面的按钮直接下载项目。
+如果你没有配置 composer 也不要紧，点击下面的按钮直接下载项目。
 
 [![Total Downloads](https://img.shields.io/packagist/dt/monolog/monolog.svg)](https://github.com/mengchenchen/MccDoc/archive/master.zip )
 
 ## 基本使用
-
-演示：首先我们在 app/controllers/UserController.php 创建文件
-
 ```php
-namespace app\Controllers;
+
 class UserController{
-    public static $API_NAME = '用户中心';
+
     /**
     * @MccDoc({
     * "name":"获取用户信息",
@@ -32,9 +33,7 @@ class UserController{
     * "description":"获取用户信息",
     * })@
     */
-    public function info(){
-        ...
-    }
+    public function info(){}
     
     /**
     * @MccDoc({
@@ -48,31 +47,40 @@ class UserController{
     *  },
     * })@
     */
-    public function edit(){
-        $name = $_POST['name'];
-        $age = $_POST['age'];
-        ....
-    }
+    public function edit(){}
 }
 ```
-
-然后在你需要生成文档的程序中加入
-
+demo.php
 ```php
-// 这里我们需要首先引入MccDoc类
-// 如果你使用了composer,并确保require autoload用直接使用use
-// use Mengchenchen/MccDoc;
-// 如果你没有使用Composer,用下面的这个方法引入MccDoc所在路径
-require 'MccDoc/MccDoc.php';
+<?php
 
-$mccdoc = new MccDoc();
-// 设置控制器的目录，将会遍历该目录下的所有php文件
-$mccdoc->path = 'app/controllers';
-// 文档的展示页面
-$mccdoc->display = 'app/views/doc.php';
+include './vendor/autoload.php';
+
+// 可以设置编码
+header("Content-Type:text/html;charset=utf-8");
+
+/**
+ * path：将要扫描的控制器路径
+ * api_name: 设置要生成的文档名称
+ * namespace：设置要反射的命名空间
+ */
+$doc = new \Mengcc\Doc([
+	'path'      => './tests/Controllers/Api',
+	'api_name'  => 'mcc',
+	'namespace' => '\Mengcc\Tests\Controllers\Api\\',
+]);
+
+// 获取所有需要解析的参数
+$doc->getAllData();
+// echo(json_encode($doc->getAllData()));
+
+// 获取所有文件信息
+$doc->getFiles();
+// echo(json_encode($doc->getFiles()));
+
+// 生成静态 html文件，生成到 D 根目录下，命名为 mcc-doc
+$doc->view('D://', 'mcc-doc');
 ```
-
-在浏览器访问文件查看效果
 
 ## 参数
 
