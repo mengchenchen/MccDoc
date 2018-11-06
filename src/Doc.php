@@ -11,35 +11,62 @@ namespace Mengcc;
 
 class Doc
 {
+	protected $params;
+	protected $files;
+	protected $methods;
+
 	public $path;
 	public $namespace;
 	public $api_name;
 	public $view_path_and_name;
 
-	protected $params;
-	protected $files;
+	public static $methodsCSS = [
+		'patch'  => 'label label-default',
+		'get'    => 'label label-primary',
+		'post'   => 'label label-success',
+		'put'    => 'label label-info',
+		'any'    => 'label label-warning',
+		'delete' => 'label label-danger',
+	];
 
-	/**
-	 * Doc constructor.
-	 * @param array $config
-	 * @throws ReflectionException
-	 */
 	public function __construct($config = [])
 	{
-		if ($config) {
-			$this->init($config);
+		foreach (['path', 'api_name', 'namespace'] as $key => $value) {
+			if (!isset($config[$value]))
+				$this->dd('Doc初始化参数缺失');
+			$this->$value = $config[$value];
+		}
+		// 开始扫描文件
+		$this->scanFile($this->path);
+		$this->init();
+	}
+
+	// 初始化
+	public function init()
+	{
+		foreach ($this->files as $file) {
+			$class  = new \ReflectionClass($this->namespace . $file);
+			$method = $class->getMethods();
+			foreach ($method as &$property) {
+				$comments = explode('@', $property->getDocComment());
+				if (!isset($comments[1]))
+					continue;
+				if (!strpos($comments[1], 'Doc') == 3)
+					continue;
+				call_user_func([$this, 'encode'], $comments[1]);
+			}
 		}
 	}
 
-	/**
-	 * 获取所有文件
-	 *
-	 * @return mixed
-	 * @author mengchenchen
-	 */
-	public function getFiles()
+	// 解析参数
+	public function encode()
 	{
-		return $this->files;
+		$params = str_replace([" ", "　", "\t", "\n", "\r", 'MccDoc', '(', ')', '*'], '', func_get_args()[0]);
+		if (!$paramsToArr = json_decode($params, true))
+			$this->dd('Json格式错误' . $params);
+		$paramsToArr['class']   = self::$methodsCSS[strtolower($paramsToArr['method'])];
+		$group                  = isset($paramsToArr['group']) ? $paramsToArr['group'] : '未分组';
+		$this->params[$group][] = $paramsToArr;
 	}
 
 	/**
@@ -53,6 +80,12 @@ class Doc
 		return $this->params;
 	}
 
+	/**
+     * 解析 前段可以处理的参数数据
+     *
+	 * @return array
+	 * @author mengchenchen
+	 */
 	public function getParamsEncode()
 	{
 		$params = [];
@@ -66,39 +99,18 @@ class Doc
 	}
 
 	/**
-	 * 程序入口
-	 *
-	 * @param $config
-	 * @throws ReflectionException
+     * 获取所有文件
+     *
+	 * @return mixed
 	 * @author mengchenchen
 	 */
-	public function init($config)
+	public function getFiles()
 	{
-		$key = ['path', 'api_name', 'namespace'];
-		array_walk($key, function ($item) use ($config) {
-			if (!isset($config[$item])) {
-				$this->dd('Doc初始化参数缺失');
-			}
-			$this->$item = $config[$item];
-		});
-		$this->scanFile($this->path);
-		foreach ($this->files as $file) {
-			$class   = new \ReflectionClass($this->namespace . $file);
-			$methods = $class->getMethods();
-			foreach ($methods as &$property) {
-				$comments = explode('@', $property->getDocComment());
-				if (isset($comments[1]) && strpos($comments[1], 'Doc') == 3) {
-					$mccDoc = str_replace([" ", "　", "\t", "\n", "\r", 'MccDoc', '(', ')', '*'], '', $comments[1]);
-					call_user_func([$this, 'encode'], $mccDoc);
-				}
-			}
-		}
+		return $this->files;
 	}
 
-
 	/**
-     * 生成视图文件
-	 * 设置路径和名称
+     *  生成页面
      *
 	 * @param string $path
 	 * @param string $name
@@ -114,15 +126,6 @@ class Doc
 		foreach (array_keys($this->params) as $item) {
 			$nav .= '<li><a href = "#' . $item . '">' . $item . '</a></li>';
 		}
-
-		$methods = [
-			'PATCH'  => 'label-default',
-			'GET'    => 'label-primary',
-			'POST'   => 'label-success',
-			'PUT'    => 'label-info',
-			'ANY'    => 'label-warning',
-			'DELETE' => 'label-danger',
-		];
 
 		$params = json_encode($this->getParamsEncode(), JSON_PRETTY_PRINT + JSON_UNESCAPED_UNICODE);
 
@@ -141,6 +144,7 @@ class Doc
     <!-- Bootstrap core CSS -->
     <link href = "https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel = "stylesheet">
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+		<script src = "https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
 </head>
 
 <body>
@@ -167,32 +171,32 @@ class Doc
         		<div class = "panel panel-default">
         			<div class = "panel-heading">
             			<h4 class = "panel-title">
-            			<span class = "label" style="width: 60px;display: inline-block;height: 23px;line-height: 20px;"> {{ item.method }} </span>
+            			<span v-bind:class = "item.class" style="width: 60px;display: inline-block;height: 23px;line-height: 20px;"> {{ item.method }} </span>
             			<a data-toggle = "collapse" data-parent = "#accordion" v-bind:href = "'#'+item.name">{{ item.name }}</a>
             			</h4>
         			</div>
         			<div v-bind:id= "item.name" class = "panel-collapse collapse">
             			<div class = "panel-body">
             				<div v-if="item.params" class="panel panel-default">
-                                <div class="panel-heading">请求地址：{{ item.url }}</div>
-                                <div class="panel-body">
-                                <form class="form-horizontal" v-bind:action="item.url" method="post">
-                                        <template v-for = "(desc,param) in item.params">
-                                            <div class="form-group">
-                                                <label class="col-sm-2 control-label">{{ param }}</label>
-                                                <div class="col-sm-10">
-                                                    <input type="text" class="form-control" v-bind:name="param">
-                                                    <span class="help-block">{{ desc }}</span>
-                                                </div>
-                                            </div>
-                                       </template>
+                        <div class="panel-heading">请求地址：{{ item.url }}</div>
+                        <div class="panel-body">
+                        <form class="form-horizontal" v-bind:action="item.url" method="post">
+                                <template v-for = "(desc,param) in item.params">
                                     <div class="form-group">
-                                       <div class="col-sm-offset-2 col-sm-10">
-                                            <button type="submit" class="btn btn-default ajaxSubmit">submit</button>
-                                       </div>
+                                        <label class="col-sm-2 control-label">{{ param }}</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" class="form-control" v-bind:name="param">
+                                            <span class="help-block">{{ desc }}</span>
+                                        </div>
                                     </div>
-                                </form>
-                                </div>
+                               </template>
+	                            <div class="form-group">
+	                               <div class="col-sm-offset-2 col-sm-10">
+	                                    <button v-on:click="submit" type="button" class="btn btn-default ajaxSubmit">submit</button>
+	                               </div>
+	                            </div>
+                        </form>
+                        </div>
             				</div>
             			</div>
         			</div>
@@ -202,7 +206,6 @@ class Doc
     </div>
 </div>
 
-<script src = "https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
 <script src = "https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
 <script>
@@ -210,7 +213,12 @@ class Doc
         el:'#app',
         data:{
             records: {$params}
-        }
+        },
+				methods: {
+					submit: function(event){
+						console.log(this)
+					}
+				}
     })
 </script>
 </body>
@@ -226,27 +234,28 @@ HTML;
 	}
 
 	/**
-	 * 解析json并获取参数
-	 *
+     * 结束程序
+     *
+	 * @param $params
 	 * @author mengchenchen
 	 */
-	public function encode()
+	private function dd($params)
 	{
-		$params = func_get_args()[0];
-		if (!$paramsToArr = json_decode($params, true)) {
-			$this->dd('Json格式错误' . $params);
-		}
-		$this->params[isset($paramsToArr['group']) ? $paramsToArr['group'] : '未分组'][] = $paramsToArr;
+		$color      = '#2295bc';
+		$background = '#e4e7e7'; ?>
+        <pre style = "direction: ltr;background:<?= $background; ?>;color:<?= $color; ?>;
+            max-width: 90%;margin: 30px auto;overflow:auto;
+            font-family: Monaco,Consolas, 'Lucida Console',monospace;font-size: 16px;padding: 20px;"><?php print_r($params);
+		die("</pre>");
 	}
 
 	/**
-	 * 遍历所有Api接口控制器文件
-	 *
+     * 遍历并引入文件
+     *
 	 * @param $path
-	 * @return array
 	 * @author mengchenchen
 	 */
-	public function scanFile($path)
+	protected function scanFile($path)
 	{
 		foreach (scandir($path) as $file) {
 			if ($file != '.' && $file != '..') {
@@ -263,37 +272,19 @@ HTML;
 	}
 
 	/**
-	 * 递归创建目录
-	 *
+     * 创建多层目录
+     *
 	 * @param $dir
 	 * @param int $mode
 	 * @return bool
 	 * @author mengchenchen
 	 */
-	function mkdirs($dir, $mode = 0777)
+	protected function mkDirs($dir, $mode = 0777)
 	{
 		if (is_dir($dir) || (@mkdir($dir, $mode) && chmod($dir, $mode)))
 			return TRUE;
-		if (!$this->mkdirs(dirname($dir), $mode))
+		if (!$this->mkDirs(dirname($dir), $mode))
 			return FALSE;
-
 		return @mkdir($dir, $mode);
-	}
-
-	/**
-	 * 打印并且结束
-	 *
-	 * @param $params
-	 * @author mengchenchen
-	 */
-	public function dd($params)
-	{
-		$color      = '#2295bc';
-		$background = '#e4e7e7'; ?>
-        <pre style = "direction: ltr;background:<?= $background; ?>;color:<?= $color; ?>;
-            max-width: 90%;margin: 30px auto;overflow:auto;
-            font-family: Monaco,Consolas, 'Lucida Console',monospace;font-size: 16px;padding: 20px;"><?php print_r($params);
-		echo "</pre>";
-		die;
 	}
 }
